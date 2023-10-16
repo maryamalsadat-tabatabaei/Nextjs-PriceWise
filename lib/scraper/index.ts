@@ -70,7 +70,7 @@ export async function scrapeAmazonProduct(url: string) {
       .text()
       .trim()
       .replace(/[^\d,]/g, "");
-    const category = $("#nav-subnav").attr("data-category");
+    const category = $("#nav-subnav").attr("data-category") || "category";
     const reviewTitleList = <string[]>[];
     $('span[data-hook="review-title"]').each((_, element) => {
       const title = $(element).text().trim();
