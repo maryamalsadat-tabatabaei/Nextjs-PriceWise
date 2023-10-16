@@ -21,9 +21,25 @@ export type Product = {
   discountRate: number;
   description: string;
   category: string;
-  reviewsCount: string;
+  reviewsCount: number;
   stars: number;
-  reviews?: String[] | [];
   isOutOfStock: Boolean;
   users?: User[];
+};
+
+export type NotificationType =
+  | "WELCOME"
+  | "CHANGE_OF_STOCK"
+  | "LOWEST_PRICE"
+  | "THRESHOLD_MET";
+
+export type EmailContent = {
+  subject: string;
+  body: string;
+};
+
+export type EmailProductInfo = {
+  title: string;
+  url: string;
+  image: string;
 };
