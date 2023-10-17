@@ -20,12 +20,15 @@ export async function GET(request: Request) {
     connectToDB();
 
     const products = await Product.find({});
+
     if (!products) throw new Error("No product fetched");
 
-    // 1) SCRAPE LATEST PRODUCT DETAILS
+    // 1) SCRAPE LATEST PRODUCT DETAILS & UPDATE DB
     const updatedProducts = await Promise.all(
       products.map(async (currentProduct) => {
+        // Scrape product
         const scrapedProduct = await scrapeAmazonProduct(currentProduct.url);
+
         if (!scrapedProduct) return;
 
         const updatedPriceHistory = [
@@ -43,7 +46,7 @@ export async function GET(request: Request) {
           averagePrice: getAveragePrice(updatedPriceHistory),
         };
 
-        // 2) UPDATE PRODUCT IN DB
+        // Update Products in DB
         const updatedProduct = await Product.findOneAndUpdate(
           {
             url: product.url,
@@ -51,31 +54,27 @@ export async function GET(request: Request) {
           product
         );
 
-        // 3)  CHECK EACH PRODUCT'S STATUS
-        const emailNotificationType = getEmailNotifType(
+        // 2) CHECK EACH PRODUCT'S STATUS & SEND EMAIL ACCORDINGLY
+        const emailNotifType = getEmailNotifType(
           scrapedProduct,
           currentProduct
         );
 
-        // 4) SEND EMAIL ACCORDINGLY
-        if (emailNotificationType && updatedProduct.users.lenght > 0) {
+        if (emailNotifType && updatedProduct.users.length > 0) {
           const productInfo = {
             title: updatedProduct.title,
             url: updatedProduct.url,
             image: updatedProduct.image,
           };
-
           // Construct emailContent
           const emailContent = await generateEmailBody(
             productInfo,
-            emailNotificationType
+            emailNotifType
           );
-
           // Get array of user emails
           const userEmails = updatedProduct.users.map(
             (user: any) => user.email
           );
-
           // Send email notification
           await sendEmail(emailContent, userEmails);
         }
